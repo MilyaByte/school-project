@@ -2,331 +2,435 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Password Security Analyzer PRO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#ff0066">
+    <meta name="description" content="SheRoMi ULTIMATE — ИИ-анализатор безопасности паролей с расширенной генерацией">
+    <title>SheRoMi ULTIMATE 🔐 Security & Reliability Master</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
-    <!-- Переключатель темы -->
-    <button class="theme-toggle" id="theme-toggle" title="Переключить тему (ПКМ для настроек)">
-        🌙
-    </button>
-
-    <!-- Быстрые действия -->
-    <div class="quick-actions">
-        <button class="quick-btn" id="quick-check" title="Быстрая проверка">
-            <i>⚡</i>
-        </button>
-        <button class="quick-btn" id="quick-generate" title="Быстрая генерация">
-            <i>🎲</i>
-        </button>
-        <button class="quick-btn" id="settings-btn" title="Настройки">
-            <i>⚙️</i>
-        </button>
+    <!-- Анимированный фон -->
+    <div class="animated-bg" id="animated-bg">
+        <div class="gradient-sphere sphere-1"></div>
+        <div class="gradient-sphere sphere-2"></div>
+        <div class="gradient-sphere sphere-3"></div>
+        <div class="gradient-sphere sphere-4"></div>
     </div>
+
+    <!-- Хедер -->
+    <div class="app-header">
+        <div class="logo">
+            <span class="logo-icon">🔐</span>
+            <span class="logo-text">SheRoMi</span>
+            <span class="logo-badge">ULTIMATE</span>
+        </div>
+        <div class="header-actions">
+            <button class="icon-btn" id="theme-toggle" title="Сменить тему">
+                <span class="theme-icon">🌙</span>
+            </button>
+            <button class="icon-btn" id="menu-btn" title="Меню">
+                <span>☰</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Боковое меню -->
+    <div class="side-menu" id="side-menu">
+        <div class="side-menu-header">
+            <h3>⚙️ SheRoMi ULTIMATE</h3>
+            <button class="close-menu" id="close-menu">✕</button>
+        </div>
+        <div class="side-menu-items">
+            <div class="side-item" data-action="dashboard">
+                <span>📊</span> Дашборд аналитики
+            </div>
+            <div class="side-item" data-action="profile">
+                <span>👤</span> Профили настроек
+            </div>
+            <div class="side-item" data-action="scheduler">
+                <span>📅</span> Планировщик
+            </div>
+            <div class="side-item" data-action="compare">
+                <span>🔄</span> Сравнение паролей
+            </div>
+            <div class="side-item" data-action="themes">
+                <span>🎨</span> Все темы (8+)
+            </div>
+            <div class="side-item" data-action="export-all">
+                <span>📦</span> Экспорт всего
+            </div>
+            <div class="side-item" data-action="achievements">
+                <span>🏆</span> Достижения
+            </div>
+            <div class="side-item" data-action="clear-all">
+                <span>🗑️</span> Сбросить всё
+            </div>
+        </div>
+        <div class="side-menu-footer">
+            <div class="level-progress">
+                <span>🏆 Уровень: <span id="user-level">Новичок</span></span>
+                <div class="level-bar"><div class="level-fill" id="level-fill" style="width: 0%"></div></div>
+            </div>
+            <small>SheRoMi v5.0 | 🔐 Security Master</small>
+        </div>
+    </div>
+    <div class="overlay hidden" id="overlay"></div>
 
     <!-- Уведомления -->
     <div id="notification" class="notification hidden"></div>
 
+    <!-- Модалка достижений -->
+    <div id="achievements-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🏆 Ваши достижения</h2>
+                <button class="close-modal">✕</button>
+            </div>
+            <div class="modal-body" id="achievements-list"></div>
+        </div>
+    </div>
+
+    <!-- Модалка тем -->
+    <div id="themes-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🎨 Выбор темы</h2>
+                <button class="close-modal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="theme-grid" id="theme-grid">
+                    <!-- темы будут добавлены через JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Основной контейнер -->
     <div class="container">
-        <header>
-            <h1>🔐 Password Security Analyzer PRO</h1>
-            <p class="subtitle">Расширенный анализ и генерация безопасных паролей</p>
-            
-            <div class="stats-container">
-                <div class="stat-card">
-                    <div class="stat-number" id="total-checks">0</div>
-                    <div>Проверок выполнено</div>
+        <header class="hero">
+            <div class="hero-content">
+                <h1>SheRoMi <span class="gradient-text">ULTIMATE</span></h1>
+                <p class="subtitle">ИИ-анализ 🔐 Генерация нового поколения 📊 Дашборд безопасности</p>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-pill" id="total-checks-pill">
+                    <span class="stat-emoji">🔍</span>
+                    <span class="stat-value" id="total-checks">0</span>
+                    <span>проверок</span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="strong-passwords">0</div>
-                    <div>Надежных паролей</div>
+                <div class="stat-pill" id="strength-pill">
+                    <span class="stat-emoji">💪</span>
+                    <span class="stat-value" id="strong-passwords">0</span>
+                    <span>надёжных</span>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="time-saved">0</div>
-                    <div>Лет защиты</div>
+                <div class="stat-pill" id="years-pill">
+                    <span class="stat-emoji">🛡️</span>
+                    <span class="stat-value" id="time-saved">0</span>
+                    <span>лет защиты</span>
+                </div>
+                <div class="stat-pill" id="avg-score-pill">
+                    <span class="stat-emoji">📈</span>
+                    <span class="stat-value" id="avg-score">0</span>
+                    <span>средний балл</span>
                 </div>
             </div>
         </header>
-        
-        <div class="feature-grid">
-            <div class="feature-card">
-                <div class="feature-icon">🔍</div>
-                <h3>Глубокий анализ</h3>
-                <p>Проверка энтропии, словарных атак и паттернов</p>
+
+        <!-- Дашборд -->
+        <div class="dashboard-section" id="dashboard-section">
+            <div class="dashboard-header">
+                <h2>📊 Дашборд безопасности</h2>
+                <button class="btn-outline-small" id="refresh-dashboard">⟳ Обновить</button>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">⚡</div>
-                <h3>Быстрая генерация</h3>
-                <p>Создание надежных паролей за секунды</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">📊</div>
-                <h3>Детальная статистика</h3>
-                <p>Визуализация силы пароля и времени подбора</p>
-            </div>
-        </div>
-        
-        <div class="tab-container">
-            <div class="tabs">
-                <button class="tab active" data-tab="check">
-                    <i>🔍</i> Проверить пароль
-                </button>
-                <button class="tab" data-tab="generate">
-                    <i>⚡</i> Сгенерировать пароль
-                </button>
-                <button class="tab" data-tab="history">
-                    <i>📋</i> История проверок
-                </button>
-                <button class="tab" data-tab="tips">
-                    <i>💡</i> Советы по безопасности
-                </button>
-            </div>
-            
-            <div class="tab-content active" id="check-tab">
-                <div class="card">
-                    <h2 class="card-title"><i>🔍</i> Проверка безопасности пароля</h2>
-                    <div class="form-group">
-                        <label for="password-input">Введите пароль для анализа:</label>
-                        <div class="input-group">
-                            <input type="password" id="password-input" placeholder="Введите ваш пароль для проверки безопасности">
-                            <button class="btn btn-info" id="toggle-password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); padding: 8px 12px;">
-                                👁️
-                            </button>
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <h3>Тренд безопасности</h3>
+                    <canvas id="trendChart" width="400" height="200"></canvas>
+                </div>
+                <div class="dashboard-card">
+                    <h3>Распределение оценок</h3>
+                    <canvas id="distributionChart" width="400" height="200"></canvas>
+                </div>
+                <div class="dashboard-card">
+                    <h3>Прогресс безопасности</h3>
+                    <div class="progress-circle-container">
+                        <svg class="progress-circle" width="120" height="120" viewBox="0 0 120 120">
+                            <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8"/>
+                            <circle class="progress-circle-fill" cx="60" cy="60" r="54" fill="none" stroke="#ff0066" stroke-width="8" stroke-dasharray="339.292" stroke-dashoffset="339.292" stroke-linecap="round"/>
+                        </svg>
+                        <div class="progress-text">
+                            <span class="progress-percent" id="security-percent">0</span>
+                            <span>%</span>
                         </div>
                     </div>
+                    <p>общий уровень безопасности</p>
+                </div>
+                <div class="dashboard-card">
+                    <h3>Топ слабых мест</h3>
+                    <ul id="top-weaknesses" class="weakness-stats-list"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Сетка функций -->
+        <div class="feature-grid">
+            <div class="feature-card" data-feature="ai">
+                <div class="feature-icon">🧠</div>
+                <h3>ИИ-анализ</h3>
+                <p>Интеллектуальная оценка безопасности</p>
+                <div class="feature-glow"></div>
+            </div>
+            <div class="feature-card" data-feature="generate">
+                <div class="feature-icon">⚡</div>
+                <h3>Генератор PRO</h3>
+                <p>Случайные, фразы, QR, шаблоны</p>
+                <div class="feature-glow"></div>
+            </div>
+            <div class="feature-card" data-feature="dashboard">
+                <div class="feature-icon">📊</div>
+                <h3>Дашборд</h3>
+                <p>Графики и аналитика</p>
+                <div class="feature-glow"></div>
+            </div>
+        </div>
+
+        <!-- Вкладки -->
+        <div class="tab-container">
+            <div class="tabs">
+                <button class="tab active" data-tab="check">🔍 Проверить</button>
+                <button class="tab" data-tab="generate">⚡ Генератор</button>
+                <button class="tab" data-tab="ai">🧠 ИИ-советник</button>
+                <button class="tab" data-tab="history">📋 История</button>
+                <button class="tab" data-tab="breaches">⚠️ Утечки</button>
+                <button class="tab" data-tab="achievements">🏆 Достижения</button>
+            </div>
+
+            <!-- Вкладка проверки -->
+            <div class="tab-content active" id="check-tab">
+                <div class="card glass-card">
+                    <h2 class="card-title">🔍 Анализ безопасности <span class="ai-badge">ИИ активирован</span></h2>
                     
+                    <div class="form-group">
+                        <label>Введите пароль для анализа:</label>
+                        <div class="input-group">
+                            <input type="password" id="password-input" placeholder="Ваш пароль..." autocomplete="off">
+                            <button class="btn-icon" id="toggle-password">👁️</button>
+                            <button class="btn-icon" id="paste-password">📋</button>
+                            <button class="btn-icon" id="voice-input-btn" title="Голосовой ввод">🎤</button>
+                        </div>
+                    </div>
+
+                    <div class="viz-container">
+                        <canvas id="strengthViz" width="400" height="80"></canvas>
+                    </div>
+
                     <div class="password-strength">
                         <div class="strength-bar">
                             <div class="strength-fill" id="strength-fill"></div>
                         </div>
                         <div class="strength-text" id="strength-text">Введите пароль для анализа</div>
                     </div>
-                    
-                    <button class="btn btn-success" id="check-btn">
-                        <i>🔍</i> Анализировать пароль
-                    </button>
-                    
+
+                    <div class="button-group">
+                        <button class="btn btn-primary" id="check-btn">🔍 Анализировать</button>
+                        <button class="btn btn-outline" id="check-breaches-btn">⚠️ Проверить утечки</button>
+                        <button class="btn btn-outline" id="batch-check-btn">📁 Пакетная проверка</button>
+                    </div>
+
                     <div id="check-results" class="hidden">
-                        <div class="card">
-                            <h2 class="card-title"><i>📊</i> Результаты анализа безопасности</h2>
+                        <div class="results-card">
                             <div id="score-display" class="score-display"></div>
                             
-                            <div class="form-group">
-                                <h3>Детали пароля:</h3>
-                                <div class="stats-container">
-                                    <div class="stat-card">
-                                        <div class="stat-number" id="length-display">0</div>
-                                        <div>Длина</div>
-                                    </div>
-                                    <div class="stat-card">
-                                        <div class="stat-number" id="entropy-display">0</div>
-                                        <div>Энтропия</div>
-                                    </div>
-                                    <div class="stat-card">
-                                        <div class="stat-number" id="char-types">0</div>
-                                        <div>Типов символов</div>
-                                    </div>
+                            <div class="ai-analysis">
+                                <div class="ai-header">
+                                    <span>🧠 ИИ-анализ</span>
+                                    <span class="ai-confidence" id="ai-confidence"></span>
                                 </div>
+                                <div class="ai-message" id="ai-message"></div>
                             </div>
-                            
+
+                            <div class="stats-grid">
+                                <div class="stat-mini">📏 Длина<span class="stat-value" id="length-display">0</span></div>
+                                <div class="stat-mini">🔢 Энтропия<span class="stat-value" id="entropy-display">0</span></div>
+                                <div class="stat-mini">🎨 Типы<span class="stat-value" id="char-types">0</span></div>
+                                <div class="stat-mini">💥 Утечки<span class="stat-value" id="breach-status">—</span></div>
+                            </div>
+
                             <div id="weaknesses" class="hidden">
-                                <h3>🔴 Обнаруженные уязвимости:</h3>
+                                <h3>🔴 Уязвимости:</h3>
                                 <ul class="weakness-list" id="weakness-list"></ul>
                             </div>
-                            
+
                             <div id="suggestions" class="hidden">
-                                <h3>🟢 Рекомендации по улучшению:</h3>
+                                <h3>🟢 Рекомендации ИИ:</h3>
                                 <ul class="suggestion-list" id="suggestion-list"></ul>
                             </div>
-                            
-                            <div id="cracking-time" class="cracking-time">
-                                <h3>⏱️ Оценка времени подбора:</h3>
+
+                            <div id="cracking-time">
+                                <h3>⏱️ Время взлома:</h3>
                                 <div class="time-display" id="time-display"></div>
-                                <p><small>* Расчет основан на атаке методом грубой силы со скоростью 1 миллиард попыток в секунду</small></p>
+                            </div>
+
+                            <div class="password-actions">
+                                <button class="btn btn-secondary" id="copy-checked-password">📋 Копировать</button>
+                                <button class="btn btn-secondary" id="save-checked-history">💾 В историю</button>
+                                <button class="btn btn-secondary" id="share-password">📱 QR</button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
+            <!-- Вкладка генерации (упрощённо) -->
             <div class="tab-content" id="generate-tab">
-                <div class="card">
-                    <h2 class="card-title"><i>⚡</i> Генератор надежных паролей</h2>
-                    
-                    <div class="form-group">
-                        <label for="password-length">Длина пароля:</label>
-                        <input type="range" id="password-length" min="8" max="32" value="16">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>8</span>
-                            <span id="length-value">16 символов</span>
-                            <span>32</span>
-                        </div>
+                <div class="card glass-card">
+                    <h2 class="card-title">⚡ Pro-генератор</h2>
+                    <div class="generator-tabs">
+                        <button class="gen-tab active" data-gen-type="standard">🎲 Стандартный</button>
+                        <button class="gen-tab" data-gen-type="passphrase">📚 Фразы</button>
+                        <button class="gen-tab" data-gen-type="custom">🎨 Шаблон</button>
                     </div>
-                    
-                    <div class="form-group">
-                        <label>Типы символов:</label>
+
+                    <div id="standard-gen" class="gen-panel active">
+                        <div class="form-group">
+                            <label>Длина: <span id="length-value">16</span></label>
+                            <input type="range" id="password-length" min="6" max="64" value="16">
+                        </div>
                         <div class="checkbox-group">
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="use-upper" checked>
-                                <label for="use-upper">ABCD Заглавные буквы</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="use-lower" checked>
-                                <label for="use-lower">abcd Строчные буквы</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="use-digits" checked>
-                                <label for="use-digits">123 Цифры</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="use-special" checked>
-                                <label for="use-special">!@# Специальные символы</label>
-                            </div>
+                            <div class="checkbox-item"><input type="checkbox" id="use-upper" checked><label>🔠 A-Z</label></div>
+                            <div class="checkbox-item"><input type="checkbox" id="use-lower" checked><label>🔡 a-z</label></div>
+                            <div class="checkbox-item"><input type="checkbox" id="use-digits" checked><label>🔢 0-9</label></div>
+                            <div class="checkbox-item"><input type="checkbox" id="use-special" checked><label>✨ !@#</label></div>
                         </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="password-pattern">Шаблон генерации:</label>
-                        <select id="password-pattern">
-                            <option value="random">Случайный пароль</option>
-                            <option value="memorable">Запоминающийся</option>
-                            <option value="pronounceable">Произносимый</option>
-                            <option value="pin">Цифровой PIN</option>
+                        <select id="password-pattern" class="full-width">
+                            <option value="random">🎲 Случайный</option>
+                            <option value="pronounceable">🗣️ Произносимый</option>
+                            <option value="pin">🔢 PIN</option>
+                            <option value="hex">🔤 HEX</option>
                         </select>
                     </div>
-                    
-                    <button class="btn btn-warning" id="generate-btn">
-                        <i>⚡</i> Сгенерировать пароль
-                    </button>
-                    <button class="btn btn-info" id="generate-multiple">
-                        <i>🔢</i> 5 вариантов
-                    </button>
-                    
-                    <div id="generated-password" class="hidden">
-                        <div class="password-display" id="password-display"></div>
-                        <div class="password-actions">
-                            <button class="btn btn-success" id="copy-btn">
-                                <i>📋</i> Копировать
-                            </button>
-                            <button class="btn" id="analyze-generated-btn">
-                                <i>🔍</i> Проанализировать
-                            </button>
-                            <button class="btn btn-info" id="save-password">
-                                <i>💾</i> Сохранить
-                            </button>
+
+                    <div id="passphrase-gen" class="gen-panel hidden">
+                        <div class="form-group">
+                            <label>Слов: <span id="word-count-value">4</span></label>
+                            <input type="range" id="word-count" min="3" max="8" value="4">
+                        </div>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item"><input type="checkbox" id="phrase-capitalize" checked><label>📖 Заглавные</label></div>
+                            <div class="checkbox-item"><input type="checkbox" id="phrase-numbers"><label>🔢 Цифры</label></div>
+                            <div class="checkbox-item"><input type="checkbox" id="phrase-special"><label>✨ Символы</label></div>
+                        </div>
+                        <select id="phrase-separator" class="full-width">
+                            <option value="-">Дефис (-)</option>
+                            <option value="_">Подчёркивание (_)</option>
+                            <option value=".">Точка (.)</option>
+                            <option value="">Нет</option>
+                        </select>
+                    </div>
+
+                    <div id="custom-gen" class="gen-panel hidden">
+                        <div class="form-group">
+                            <label>Шаблон (L=буква, N=цифра, S=символ):</label>
+                            <input type="text" id="custom-pattern" value="LLLL-NNNN-SS" class="full-width">
+                            <small>Пример: <code id="pattern-example">AbCd-1234-!@</code></small>
                         </div>
                     </div>
-                    
+
+                    <div class="button-group">
+                        <button class="btn btn-primary" id="generate-btn">⚡ Сгенерировать</button>
+                        <button class="btn btn-outline" id="generate-multiple">🔢 5 вариантов</button>
+                    </div>
+
+                    <div id="generated-password" class="hidden">
+                        <div class="password-display" id="password-display"></div>
+                        <div class="password-meta">
+                            <span class="entropy-badge" id="generated-entropy"></span>
+                            <button class="qr-btn" id="show-qr-btn">📱 QR</button>
+                        </div>
+                        <div class="qr-container hidden" id="qr-container"><div id="qrcode"></div><button class="close-qr" id="close-qr">✕</button></div>
+                        <div class="password-actions">
+                            <button class="btn btn-success" id="copy-btn">📋 Копировать</button>
+                            <button class="btn btn-secondary" id="analyze-generated-btn">🔍 Анализировать</button>
+                            <button class="btn btn-secondary" id="save-password">💾 Сохранить</button>
+                            <button class="btn btn-outline" id="regenerate-btn">🔄 Ещё</button>
+                        </div>
+                    </div>
+
                     <div id="multiple-passwords" class="hidden">
-                        <h3>Сгенерированные варианты:</h3>
+                        <h3>📋 5 вариантов (клик для копирования):</h3>
                         <div id="password-list"></div>
                     </div>
                 </div>
             </div>
-            
-            <div class="tab-content" id="history-tab">
-                <div class="card">
-                    <h2 class="card-title"><i>📋</i> История проверок паролей</h2>
-                    <div id="history-list">
-                        <p style="text-align: center; padding: 40px; color: var(--text-muted);">
-                            История проверок пуста. Проанализируйте свой первый пароль!
-                        </p>
-                    </div>
-                    <button class="btn btn-danger" id="clear-history">
-                        <i>🗑️</i> Очистить историю
-                    </button>
-                    <button class="btn btn-info" id="export-data">
-                        <i>📤</i> Экспорт данных
-                    </button>
-                </div>
-            </div>
-            
-            <div class="tab-content" id="tips-tab">
-                <div class="card">
-                    <h2 class="card-title"><i>💡</i> Советы по созданию надежных паролей</h2>
-                    
-                    <div class="feature-grid">
-                        <div class="feature-card">
-                            <h3>📏 Длина важнее сложности</h3>
-                            <p>Пароль из 12+ символов надежнее короткого сложного пароля</p>
-                        </div>
-                        <div class="feature-card">
-                            <h3>🎲 Уникальность</h3>
-                            <p>Используйте разные пароли для разных сервисов</p>
-                        </div>
-                        <div class="feature-card">
-                            <h3>🔀 Разнообразие символов</h3>
-                            <p>Комбинируйте буквы, цифры и специальные символы</p>
-                        </div>
-                        <div class="feature-card">
-                            <h3>🚫 Избегайте личной информации</h3>
-                            <p>Не используйте имена, даты рождения или простые слова</p>
-                        </div>
-                        <div class="feature-card">
-                            <h3>🔄 Регулярная смена</h3>
-                            <p>Меняйте важные пароли каждые 3-6 месяцев</p>
-                        </div>
-                        <div class="feature-card">
-                            <h3>🗄️ Менеджер паролей</h3>
-                            <p>Используйте надежные программы для хранения паролей</p>
-                        </div>
-                    </div>
-                    
-                    <h3 style="margin-top: 30px;">📈 Шкала надежности паролей:</h3>
-                    <div class="password-strength">
-                        <div class="strength-bar">
-                            <div class="strength-fill" style="width: 20%; background: var(--danger-color);"></div>
-                        </div>
-                        <div class="strength-text">Слабый - менее 8 символов, только буквы</div>
-                        
-                        <div class="strength-bar" style="margin-top: 15px;">
-                            <div class="strength-fill" style="width: 40%; background: var(--warning-color);"></div>
-                        </div>
-                        <div class="strength-text">Средний - 8-11 символов, буквы и цифры</div>
-                        
-                        <div class="strength-bar" style="margin-top: 15px;">
-                            <div class="strength-fill" style="width: 70%; background: var(--info-color);"></div>
-                        </div>
-                        <div class="strength-text">Хороший - 12-15 символов, разные типы символов</div>
-                        
-                        <div class="strength-bar" style="margin-top: 15px;">
-                            <div class="strength-fill" style="width: 100%; background: var(--success-color);"></div>
-                        </div>
-                        <div class="strength-text">Отличный - 16+ символов, все типы символов</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <footer>
-            <p>© 2024 Password Security Analyzer PRO | Защитите свои цифровые активы с помощью надежных паролей</p>
-        </footer>
-    </div>
 
-    <!-- Модальное окно экспорта -->
-    <div id="export-modal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>📤 Экспорт данных</h2>
-                <button class="close-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="export-options">
-                    <button class="btn btn-info" id="export-json">
-                        <i>📄</i> Экспорт в JSON
-                    </button>
-                    <button class="btn btn-success" id="export-csv">
-                        <i>📊</i> Экспорт в CSV
-                    </button>
-                    <button class="btn btn-warning" id="export-pdf">
-                        <i>📑</i> Создать отчет PDF
-                    </button>
+            <!-- Остальные вкладки -->
+            <div class="tab-content" id="ai-tab">
+                <div class="card glass-card">
+                    <h2 class="card-title">🧠 ИИ-советник</h2>
+                    <div class="ai-chat-container">
+                        <div class="ai-chat-messages" id="ai-chat-messages">
+                            <div class="ai-message-bubble"><span class="ai-avatar">🧠</span><p>Привет! Я ИИ-советник SheRoMi. Задайте любой вопрос о безопасности паролей.</p></div>
+                        </div>
+                        <div class="ai-chat-input">
+                            <input type="text" id="ai-question" placeholder="Спросите у ИИ...">
+                            <button id="ask-ai">➤</button>
+                        </div>
+                    </div>
+                    <div class="ai-quick-questions">
+                        <button class="quick-question">Как создать идеальный пароль?</button>
+                        <button class="quick-question">Что такое энтропия?</button>
+                        <button class="quick-question">Нужно ли менять пароли?</button>
+                        <button class="quick-question">Менеджер паролей?</button>
+                    </div>
                 </div>
-                <div id="export-result" class="hidden"></div>
+            </div>
+
+            <div class="tab-content" id="history-tab">
+                <div class="card glass-card">
+                    <h2 class="card-title">📋 История проверок</h2>
+                    <div class="history-controls">
+                        <input type="text" id="history-search" placeholder="🔍 Поиск..." class="search-input">
+                        <select id="history-filter">
+                            <option value="all">Все</option>
+                            <option value="strong">Сильные (≥8)</option>
+                            <option value="weak">Слабые (<4)</option>
+                        </select>
+                        <button class="btn-outline-small" id="export-history-csv">📊 Экспорт CSV</button>
+                    </div>
+                    <div id="history-list"><p class="empty-history">📭 История пуста</p></div>
+                    <div class="button-group"><button class="btn btn-danger" id="clear-history">🗑️ Очистить всё</button></div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="breaches-tab">
+                <div class="card glass-card">
+                    <h2 class="card-title">⚠️ Проверка утечек</h2>
+                    <p>Проверьте пароль через HIBP (haveibeenpwned)</p>
+                    <div class="form-group">
+                        <input type="password" id="breach-password" placeholder="Введите пароль..." class="full-width">
+                        <button class="btn btn-primary" id="check-breaches-btn2" style="margin-top: 10px;">⚠️ Проверить</button>
+                    </div>
+                    <div id="breach-results" class="hidden"><div class="breach-result-card" id="breach-result-card"></div></div>
+                    <p class="breach-note"><small>🔒 Ваш пароль не передаётся — используется k-анонимность</small></p>
+                </div>
+            </div>
+
+            <div class="tab-content" id="achievements-tab">
+                <div class="card glass-card">
+                    <h2 class="card-title">🏆 Достижения</h2>
+                    <div id="achievements-grid" class="achievements-grid"></div>
+                </div>
             </div>
         </div>
+
+        <footer>
+            <p>SheRoMi ULTIMATE — Security & Reliability Master | © 2026 | 🔐 Ваша безопасность — наш приоритет</p>
+        </footer>
     </div>
 
     <script src="script.js"></script>
