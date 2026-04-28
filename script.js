@@ -4744,3 +4744,179 @@ setTimeout(() => {
     
     console.log('✅ Все модалки зарегистрированы!');
 }, 500);
+
+// ==================== QR-КОД ЗАЩИТА ВХОДА ====================
+(function addQRCodeGate() {
+    // Создаём затемнённый экран с проверкой пароля
+    const overlayGate = document.createElement('div');
+    overlayGate.id = 'qr-gate-overlay';
+    overlayGate.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        backdrop-filter: blur(20px);
+        z-index: 200000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        transition: opacity 0.5s ease;
+    `;
+    
+    overlayGate.innerHTML = `
+        <div style="background: var(--bg-card);
+                    border-radius: 32px;
+                    padding: 40px;
+                    text-align: center;
+                    max-width: 400px;
+                    border: 1px solid var(--border);
+                    box-shadow: 0 0 50px rgba(255, 0, 102, 0.3);">
+            <div style="font-size: 64px; margin-bottom: 20px;">🔐</div>
+            <h2 style="color: var(--primary); margin-bottom: 10px;">Доступ ограничен</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 25px;">
+                Этот сайт требует надёжный пароль для входа.<br>
+                Покажите, что вы заботитесь о безопасности!
+            </p>
+            <div class="input-group" style="margin-bottom: 20px;">
+                <input type="password" id="gate-password" placeholder="Введите пароль..." 
+                       style="width: 100%; padding: 14px; background: var(--bg-input); 
+                              border: 1px solid var(--border); border-radius: 16px; color: white;">
+                <button id="gate-toggle" class="btn-icon" style="right: 8px;">👁️</button>
+            </div>
+            <button id="gate-submit" class="btn btn-primary" style="width: 100%; margin-bottom: 15px;">
+                🔓 Войти
+            </button>
+            <button id="gate-generate" class="btn btn-outline" style="width: 100%;">
+                ⚡ Сгенерировать надёжный пароль
+            </button>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 20px;">
+                💡 Подсказка: пароль должен быть оценён на 7+ баллов
+            </p>
+            <div id="gate-message" style="margin-top: 15px; font-size: 14px;"></div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlayGate);
+    
+    // Глазик для поля пароля
+    const gateInput = document.getElementById('gate-password');
+    const gateToggle = document.getElementById('gate-toggle');
+    if (gateToggle && gateInput) {
+        gateToggle.addEventListener('click', () => {
+            if (gateInput.type === 'password') {
+                gateInput.type = 'text';
+                gateToggle.innerHTML = '🔒';
+            } else {
+                gateInput.type = 'password';
+                gateToggle.innerHTML = '👁️';
+            }
+        });
+    }
+    
+    // Кнопка генерации надёжного пароля
+    document.getElementById('gate-generate').addEventListener('click', () => {
+        // Генерируем надёжный пароль для входа
+        const strongPassword = generateStrongPassword(14, true, true, true, true, 'random');
+        gateInput.value = strongPassword;
+        
+        // Показываем оценку пароля
+        const analyzer = new PasswordSecurity(strongPassword);
+        const score = analyzer.getScore();
+        const msgDiv = document.getElementById('gate-message');
+        msgDiv.innerHTML = `<span style="color: #00e676;">✅ Сгенерирован пароль с оценкой ${score}/10! Нажмите "Войти"</span>`;
+        msgDiv.style.color = '#00e676';
+        
+        // Копируем в буфер автоматически
+        navigator.clipboard.writeText(strongPassword);
+        NotificationManager.show('🔐 Надёжный пароль скопирован! Вставьте его в поле', 'success', 3000);
+    });
+    
+    // Проверка пароля
+    document.getElementById('gate-submit').addEventListener('click', () => {
+        const password = gateInput.value;
+        if (!password) {
+            showGateMessage('❌ Введите пароль', '#ff3b30');
+            return;
+        }
+        
+        const analyzer = new PasswordSecurity(password);
+        const result = analyzer.analyzePassword();
+        const score = result.score;
+        
+        if (score >= 7) {
+            // Пароль надёжный — пропускаем
+            showGateMessage(`✅ Доступ разрешён! Надёжность: ${score}/10`, '#00e676');
+            
+            // Анимация исчезновения
+            overlayGate.style.opacity = '0';
+            setTimeout(() => {
+                overlayGate.remove();
+            }, 500);
+            
+            // Сохраняем в localStorage что пользователь прошёл проверку
+            localStorage.setItem('gate_passed', 'true');
+            localStorage.setItem('gate_password_score', score);
+            
+            // Неоновый эффект при успешном входе
+            createNeonFlash();
+            NotificationManager.show(`🎉 Добро пожаловать! Ваш пароль — ${score}/10`, 'success', 4000);
+            
+        } else {
+            // Пароль слабый — блокируем
+            showGateMessage(`❌ ДОСТУП ЗАПРЕЩЁН! Ваш пароль (${score}/10) слишком слабый. Требуется 7+/10`, '#ff3b30');
+            
+            // Эффект тряски
+            const modal = overlayGate.querySelector('div');
+            modal.style.animation = 'shake 0.3s ease';
+            setTimeout(() => {
+                modal.style.animation = '';
+            }, 300);
+            
+            // Встряска для телефона если есть
+            try {
+                if (window.navigator && window.navigator.vibrate) {
+                    window.navigator.vibrate(200);
+                }
+            } catch(e) {}
+        }
+    });
+    
+    function showGateMessage(msg, color) {
+        const msgDiv = document.getElementById('gate-message');
+        msgDiv.innerHTML = msg;
+        msgDiv.style.color = color;
+        setTimeout(() => {
+            if (msgDiv.innerHTML === msg) {
+                msgDiv.innerHTML = '';
+            }
+        }, 3000);
+    }
+    
+    // Проверяем, не проходил ли пользователь уже проверку
+    if (localStorage.getItem('gate_passed') === 'true') {
+        // Уже проходил — убираем экран входа
+        overlayGate.style.opacity = '0';
+        setTimeout(() => {
+            overlayGate.remove();
+        }, 100);
+    }
+    
+    // Добавляем стиль для тряски если его нет
+    if (!document.querySelector('#shake-style')) {
+        const style = document.createElement('style');
+        style.id = 'shake-style';
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-10px); }
+                75% { transform: translateX(10px); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    console.log('✅ QR-код защита входа активирована!');
+})();
